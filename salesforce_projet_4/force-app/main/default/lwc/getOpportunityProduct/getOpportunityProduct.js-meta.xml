@@ -4,4 +4,9 @@
     <description>Get Opportunity Product</description>
     <isExposed>true</isExposed>
     <masterLabel>Get Opportunity Product</masterLabel>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+    </targets>
 </LightningComponentBundle>
