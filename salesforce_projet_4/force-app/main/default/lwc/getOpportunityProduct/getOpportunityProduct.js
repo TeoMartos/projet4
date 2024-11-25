@@ -49,7 +49,7 @@ export default class GetOpportunityProduct extends LightningElement {
         }
     }
     get errorStyle () {
-        return this.error && this.error.includes('Vous n\'avez aucune ligne de produits pour le moment.\n1. Veuillez tout d\'abord sélectionner un Catalogue (Pricebook) \n2. Sélectionnez ensuite les produits à ajouter.')
+        return this.error && this.error.includes('Vous n\'avez aucune ligne de produits pour le moment.\n1.Veuillez tout d\'abord sélectionner un Catalogue (Pricebook) \n2. Sélectionnez ensuite les produits à ajouter.')
         ? 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error'
     }
 }
