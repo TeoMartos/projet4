@@ -1,55 +1,1 @@
-import { LightningElement, api, wire, track } from 'lwc';
-import getProducts from '@salesforce/apex/ProductController.getProducts';
-
-export default class GetOpportunityProduct extends LightningElement {
-    @api recordId;
-    @track products;
-    @track error;
-    columns = [
-        { label: 'Nom du produit', fieldName: 'Product2.Name', type: 'text' },
-        { label: 'Quantité', fieldName: 'Quantity', type: 'currency' },
-        { label: 'Prix Unitaire', fieldName: 'UnitPrice', type: 'currency' },
-        { label: 'Prix Total', fieldName: 'TotalPrice', type: 'currency' },
-        { label: 'Quantité en Stock', fieldName: 'Product2.QuantityInStock__c', type: 'number' },
-        {
-            type: "button", label: 'Delete', initialWidth: 110, typeAttributes: {
-                label: 'Delete',
-                name: 'Delete',
-                title: 'Delete',
-                disabled: false,
-                value: 'delete',
-                iconPosition: 'left',
-                iconName:'utility:delete',
-                variant:'destructive'
-            }
-        },
-        {
-            type: "button", label: 'View', initialWidth: 100, typeAttributes: {
-                label: 'View',
-                name: 'View',
-                title: 'View',
-                   disabled: false,
-                        value: 'view',
-                        iconPosition: 'left',
-                        iconName:'utility:preview',
-                        variant:'Brand'
-                }
-           },
-    ];
-    wiredProductsResult;
-    @wire(getProducts, { accountId : '$recordId' })
-    wiredProducts(result) {
-        this.wiredProductsResult = result;
-        if (result.data) {
-            this.products = result.data.length > 0 ? result.data : null;
-            this.error = result.data.length == 0 ? 'Vous n\'avez pas de produit associées à l\'opportunités' : null;
-        } else if (result.error) {
-            this.error = 'Une erreur s\'est produite lors du chargement des produits.'
-            this.products = undefined;
-        }
-    }
-    get errorStyle () {
-        return this.error && this.error.includes('Vous n\'avez aucune ligne de produits pour le moment.\n1.Veuillez tout d\'abord sélectionner un Catalogue (Pricebook) \n2. Sélectionnez ensuite les produits à ajouter.')
-        ? 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error'
-    }
-}
+import {    LightningElement,    api,    wire,    track} from 'lwc';import getProducts from '@salesforce/apex/ProductController.getProducts';import {    NavigationMixin} from 'lightning/navigation';export default class GetOpportunityProduct extends LightningElement {    @api recordId;    @track products;    @track error;    columns = [{            label: 'Nom du produit',            fieldName: 'Product_Name',            type: 'text'        },        {            label: 'Quantité',            fieldName: 'Quantity',            type: 'number'        },        {            label: 'Prix Unitaire',            fieldName: 'UnitPrice',            type: 'currency'        },        {            label: 'Prix Total',            fieldName: 'TotalPrice',            type: 'currency'        },        {            label: 'Quantité en Stock',            fieldName: 'Product_QuantityInStock',            type: 'number'        },        {            type: "button",            label: 'Actions',            initialWidth: 110,            typeAttributes: {                label: 'Delete',                name: 'Delete', // Le nom doit correspondre dans callRowAction                title: 'Delete',                disabled: false,                value: 'delete',                iconPosition: 'left',                iconName: 'utility:delete',                variant: 'destructive'            }        },        {            type: "button",            label: 'Actions',            initialWidth: 100,            typeAttributes: {                label: 'View',                name: 'View', // Le nom doit correspondre dans callRowAction                title: 'View',                disabled: false,                value: 'view',                iconPosition: 'left',                iconName: 'utility:preview',                variant: 'brand'            }        }    ];    wiredProductsResult;    @wire(getProducts, {        accountId: '$recordId'    })    if (result.data) {        this.products = result.data.length > 0 ? result.data : null;        this.error = result.data.length == 0 ? 'Vous n\'avez pas de produit associées à l\'opportunités' : null;    } else if (result.error) {        this.error = 'Une erreur s\'est produite lors du chargement des produits.'        this.products = undefined;        wiredProducts(result) {            this.wiredProductsResult = result;            const {                data,                error            } = result;            if (data) {                if (data.length === 0) {                    // Pas de produits trouvés                    this.error = 'Aucun produit n\'est associé à cette opportunité.';                    this.products = result.data.length > 0 ? result.data : null;                } else {                    // Produits trouvés                    this.products = data.map((product) => {                        if (!product.Product2) {                            return null;                        }                        const isInStock = product.Product2.QuantityInStock > 0;                        return {                            ...product,                            Product_Name: product.Product2.Name,                            Product_QuantityInStock: product.Product2.QuantityInStock,                            isEditable: isInStock,                            cellClass: isInStock ? "" : "slds-theme_alert-texture",                            tooltip: isInStock ? "Produit en stock" : "Stock insuffisant"                        };                    }).filter((product) => product !== null);                    this.error = null;                }            } else if (error) {                this.error = 'Une erreur s\'est produite lors du chargement des produits.';                this.products = [];            }        }        callRowAction(event) {            console.log('Row action triggered');            console.log('Action name:', event.detail.action.name);            console.log('Row details:', event.detail.row);            console.log('Row action triggered');            const recId = event.detail.row.Id;            const actionName = event.detail.action.name;            if (actionName === 'Delete') {                this.handleDeleteRow(recId);            } else if (actionName === 'View') {                this.handleAction(recId, 'view');            }        }        handleAction(recordId, mode) {            try {                console.log(`Navigating to record: ${recordId}, mode: ${mode}`);                this[NavigationMixin.Navigate]({                    type: 'standard__recordPage',                    attributes: {                        recordId: recordId,                        objectApiName: 'Product2',                        actionName: mode                    }                });            } catch (error) {                console.error('Navigation failed:', error);            }        }        handleDeleteRow(recordIdToDelete) {            deleteRecord(recordIdToDelete)                .then(result => {                    this.showToast('Success!!', 'Record deleted successfully!!', 'success', 'dismissable');                    return refreshApex(this.wireResult);                }).catch(error => {                    this.error = error;                });        }        get errorStyle() {            return this.error && this.error.includes('Vous n\'avez aucune ligne de produits pour le moment.\n1.Veuillez tout d\'abord sélectionner un Catalogue (Pricebook) \n2. Sélectionnez ensuite les produits à ajouter.') ?                'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error'        }    }

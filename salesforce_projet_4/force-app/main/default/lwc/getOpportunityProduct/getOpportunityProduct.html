@@ -4,12 +4,13 @@
 
 <!-- Get Opportunity Product -->
 <template>
-    <lightning-card title="Opportunités Product" icon-name="standard:product">
+    <lightning-card title="Opportunitées Product" icon-name="standard:product">
         <div class=slds-max-large-size_xx-large>
             <template lwc:if={products}>
                 <lightning-datatable data={products}
                                      columns={columns}
                                      key-field="Id"
+                                     onrowaction={callRowAction}
                                      class="slds-box slds-theme_default">
                 </lightning-datatable>
             </template>

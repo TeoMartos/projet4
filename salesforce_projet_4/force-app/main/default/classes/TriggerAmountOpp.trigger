@@ -6,8 +6,12 @@ trigger TriggerAmountOpp on Opportunity (before insert) {
     }
 
     if (!oppIds.isEmpty()) {
-        List<AggregateResult> groupedResultsOpp = [SELECT accountId, SUM(Amount) DiscountAmount  FROM Opportunity
-            WHERE StageName = 'Closed Won' AND accountId IN :oppIds GROUP BY AccountId];
+        List<AggregateResult> groupedResultsOpp = [
+                SELECT accountId, SUM(Amount) DiscountAmount
+                FROM Opportunity
+                WHERE StageName = 'Closed Won' AND accountId IN :oppIds
+                GROUP BY AccountId
+        ];
 
         for (Opportunity opp : Trigger.new) {
             for (AggregateResult agg : groupedResultsOpp) {
