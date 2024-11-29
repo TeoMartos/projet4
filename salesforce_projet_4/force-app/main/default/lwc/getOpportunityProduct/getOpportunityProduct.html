@@ -5,21 +5,18 @@
 <!-- Get Opportunity Product -->
 <template>
     <lightning-card title="Opportunitées Product" icon-name="standard:product">
-        <div class=slds-max-large-size_xx-large>
-            <template lwc:if={products}>
-                <lightning-datatable data={products}
-                                     columns={columns}
-                                     key-field="Id"
-                                     onrowaction={callRowAction}
-                                     class="slds-box slds-theme_default">
-                </lightning-datatable>
-            </template>
-            <template lwc:else>
-                <div class={errorStyle} role="contentinfo" style="background-color: transparent;">
-                    <span class="slds-assistive-text">Erreur</span>
-                    <p class="slds-p-around_medium slds-text-color_error">{error}</p>
-                </div>
-            </template>
-        </div>
+        <template if:true={products}>
+            <lightning-datatable
+                data={products}
+                columns={columns}
+                key-field="Id"
+                onrowaction={callRowAction}>
+            </lightning-datatable>
+        </template>
+        <template if:false={products}>
+            <div class={errorStyle}>
+                <p>{error}</p>
+            </div>
+        </template>
     </lightning-card>
 </template>
