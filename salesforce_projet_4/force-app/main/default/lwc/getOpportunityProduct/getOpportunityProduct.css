@@ -1,0 +1,26 @@
+/**
+ * Created by TMARTOS on 06/12/2024.
+ */
+
+ .quantity-block {
+     padding: 10px;
+     margin: 10px;
+     color: white;
+     font-weight: bold;
+     text-align: center;
+     min-width: 257px;
+ }
+
+.quantity-red {
+    color: red;
+    font-weight: bold;
+}
+
+.opportunity-red {
+    background-color: red;
+}
+
+.slds-theme_warning {
+    padding: 10px;
+    margin-bottom: 10px;
+}

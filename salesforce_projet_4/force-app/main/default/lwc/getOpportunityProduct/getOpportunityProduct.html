@@ -1,16 +1,20 @@
-<!--
- - Created by TMARTOS on 18/11/2024.
- -->
-
-<!-- Get Opportunity Product -->
 <template>
-    <lightning-card title="Opportunitées Product" icon-name="standard:product">
+    <lightning-card title="Opportunité produits" icon-name="standard:product">
+        <!-- Message d'avertissement -->
+        <template if:true={hasQuantityIssue}>
+            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_warning" role="alert">
+                <span class="slds-assistive-text">Warning</span>
+                <h2>
+                    Vous avez au moins un produit avec un problème de quantité. Veuillez supprimer cette ligne ou réduire la quantité. Si vous avez absolument besoin de plus de produits, veuillez contacter votre administrateur système.
+                </h2>
+            </div>
+        </template>
         <template if:true={products}>
             <lightning-datatable
-                data={products}
-                columns={columns}
-                key-field="Id"
-                onrowaction={callRowAction}>
+                    data={products}
+                    columns={columns}
+                    key-field="Id"
+                    onrowaction={callRowAction}>
             </lightning-datatable>
         </template>
         <template if:false={products}>
