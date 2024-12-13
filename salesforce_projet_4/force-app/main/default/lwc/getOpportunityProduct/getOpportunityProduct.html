@@ -18,8 +18,13 @@
             </lightning-datatable>
         </template>
         <template if:false={products}>
-            <div class={errorStyle}>
-                <p>{error}</p>
+            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info" role="alert">
+                <span class="slds-assistive-text">Info</span>
+                <h2>
+                    Vous n'avez aucune ligne de produits pour le moment.
+                </h2>
+                <p>1. Veuillez tout d'abord sélectionner un Catalogue (Pricebook).</p>
+                <p>2. Sélectionnez ensuite les produits à ajouter.</p>
             </div>
         </template>
     </lightning-card>

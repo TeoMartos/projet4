@@ -10,6 +10,9 @@ import {
 import {
     deleteRecord
 } from 'lightning/uiRecordApi';
+import {
+    fetchCustomLabels
+} from "vlocity_ns/utility";
 
 import getProducts from '@salesforce/apex/ProductController.getProducts';
 import getUser from '@salesforce/apex/UserController.getUser';
@@ -56,7 +59,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
             label: 'Delete',
             initialWidth: 110,
             typeAttributes: {
-                label: 'Delete',
+                label: '',
                 name: 'Delete',
                 title: 'Delete',
                 value: 'delete',
@@ -70,7 +73,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
             label: 'View',
             initialWidth: 100,
             typeAttributes: {
-                label: 'View',
+                label: 'View Product',
                 name: 'View',
                 title: 'View',
                 disabled: false,
@@ -118,15 +121,17 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
                     Product2Id: item.Product2?.Id,
                     OpportunityLineItemId: item.Id,
                     quantityStyle: quantity > quantityInStock ?
-                        'color: red; font-weight: bold;' :
-                        'color: green; font-weight: bold;'
+                        'color: red; font-weight: bold;' : 'color: green; font-weight: bold;'
                 };
 
             });
+            console.log('this.products.length === ', this.products.length)
 
-            this.error = this.products.length === 0 ?
-                'Vous n\'avez pas de produit associées à l\'opportunité' :
-                null;
+            if (this.products.length === 0) {
+                console.log('this.products.length2 === ', this.products.length)
+                this.products = undefined;
+            }
+            this.error = null
         } else if (result.error) {
             console.error('Error fetching products:', result.error);
             this.error = 'Une erreur s\'est produite lors du chargement des produits.';
