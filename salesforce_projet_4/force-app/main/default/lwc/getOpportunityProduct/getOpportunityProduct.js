@@ -11,8 +11,8 @@ import {
     deleteRecord
 } from 'lightning/uiRecordApi';
 import {
-    fetchCustomLabels
-} from "vlocity_ns/utility";
+    refreshApex
+} from '@salesforce/apex';
 
 import getProducts from '@salesforce/apex/ProductController.getProducts';
 import getUser from '@salesforce/apex/UserController.getUser';
@@ -23,6 +23,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
     @track error;
     @track isButtonDisabled = false;
     @track hasQuantityIssue = false;
+    @track hasProduct = false;
 
     columns = [{
             label: 'Nom du produit',
@@ -51,38 +52,37 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
         },
         {
             label: 'Quantité en Stock',
-            fieldName: 'Quantity_In_Stock__c',
+            fieldName: 'quantityInStock',
             type: 'number'
         },
         {
-            type: "button",
-            label: 'Delete',
-            initialWidth: 110,
+            label: 'Supprimer',
+            type: 'button-icon',
+            initialWidth: 50,
             typeAttributes: {
-                label: '',
-                name: 'Delete',
-                title: 'Delete',
-                value: 'delete',
-                iconPosition: 'left',
                 iconName: 'utility:delete',
-                variant: 'destructive'
-            }
+                name: 'Delete',
+                title: 'Supprimer',
+                alternativeText: 'Supprimer',
+                variant: 'bare',
+                class: 'slds-p-around_xxx-small custom-border'
+            },
+			cellAttributes: { class: 'slds-border_bottom' }
         },
         {
-            type: "button",
-            label: 'View',
-            initialWidth: 100,
+            label: 'Voir produit',
+            type: 'button',
+            initialWidth: 120,
             typeAttributes: {
                 label: 'View Product',
                 name: 'View',
-                title: 'View',
-                disabled: false,
-                value: 'view',
-                iconPosition: 'left',
+                title: 'Voir produit',
                 iconName: 'utility:preview',
-                variant: 'Brand'
+                iconPosition: 'left',
+                variant: 'brand',
+                class: 'slds-p-around_xx-small custom-border'
             }
-        },
+        }
     ];
 
     /*@wire(getUser, {})
@@ -107,9 +107,10 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
         this.wiredProductsResult = result;
         if (result.data) {
             this.hasQuantityIssue = false;
+            this.hasProduct = result.data.length > 0; // Vérifie si des produits existent
             this.products = result.data.map(item => {
                 const quantity = item.Quantity || 0;
-                const quantityInStock = item.Quantity_In_Stock__c || 0;
+                const quantityInStock = item.Product2?.QuantityInStock__c || 0;
                 if (quantity > quantityInStock) {
                     this.hasQuantityIssue = true;
                 }
@@ -117,25 +118,20 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
                 return {
                     ...item,
                     productName: item.Product2?.Name,
-                    quantityInStock: quantityInStock,
+                    quantityInStock: item.Product2?.QuantityInStock__c || 0,
                     Product2Id: item.Product2?.Id,
-                    OpportunityLineItemId: item.Id,
                     quantityStyle: quantity > quantityInStock ?
                         'color: red; font-weight: bold;' : 'color: green; font-weight: bold;'
                 };
-
             });
-            console.log('this.products.length === ', this.products.length)
-
-            if (this.products.length === 0) {
-                console.log('this.products.length2 === ', this.products.length)
-                this.products = undefined;
-            }
             this.error = null
         } else if (result.error) {
+            console.log('hasProduct:', this.hasProduct);
+
             console.error('Error fetching products:', result.error);
             this.error = 'Une erreur s\'est produite lors du chargement des produits.';
             this.products = undefined;
+            this.hasProduct = false;
         }
     }
 
@@ -148,7 +144,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
         const actionName = event.detail.action.name;
         const row = event.detail.row;
         if (actionName === 'View') {
-            this.handleSeeProduct(row.OpportunityLineItemId);
+            this.handleSeeProduct(row.Product2Id);
         } else if (actionName === 'Delete') {
             this.handleDeleteProduct(row.Product2Id);
         }
@@ -163,10 +159,11 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
             type: 'standard__recordPage',
             attributes: {
                 recordId: relatedProductId,
-                objectApiName: 'OpportunityLineItem',
+                objectApiName: 'Product2',
                 actionName: 'view',
             },
         });
+
     }
 
     handleDeleteProduct(relatedProductId) {
@@ -177,7 +174,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
         deleteRecord(relatedProductId)
             .then(result => {
                 console.log('Success delete')
-                return refreshApex(this.wireResult);
+                return refreshApex(this.wiredProductsResult);
             }).catch(error => {
                 this.error = error;
                 console.log('FAIL delete', error)
