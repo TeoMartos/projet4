@@ -24,6 +24,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
     @track isButtonDisabled = false;
     @track hasQuantityIssue = false;
     @track hasProduct = false;
+	@track isCommercial  = false;
 
     columns = [{
             label: 'Nom du produit',
@@ -74,7 +75,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
             type: 'button',
             initialWidth: 120,
             typeAttributes: {
-                label: 'View Product',
+                label: 'Voir produit',
                 name: 'View',
                 title: 'Voir produit',
                 iconName: 'utility:preview',
@@ -85,20 +86,16 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
         }
     ];
 
-    /*@wire(getUser, {})
-    userData({
-        error,
-        data
-    }) {
+    @wire(getUser, { userId: '$userId' })
+    userData({ error, data }) {
         if (data) {
-            //if(data.Profile.Name === "Commercial") {
-            this.isButtonDisabled = true;
-            console.log('data.Profile.Name === ', data)
-            // }
+            const profileName = data[0]?.Profile?.Name;
+            this.isCommercial = profileName === 'Commercial';
         } else if (error) {
-            console.error(error.body.message);
+            console.error('Erreur lors de la récupération du profil utilisateur:', error);
         }
-    }*/
+    }
+
     wiredProductsResult;
     @wire(getProducts, {
         oppId: '$recordId'
@@ -126,8 +123,6 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
             });
             this.error = null
         } else if (result.error) {
-            console.log('hasProduct:', this.hasProduct);
-
             console.error('Error fetching products:', result.error);
             this.error = 'Une erreur s\'est produite lors du chargement des produits.';
             this.products = undefined;
@@ -143,16 +138,15 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
     callRowAction(event) {
         const actionName = event.detail.action.name;
         const row = event.detail.row;
-        if (actionName === 'View') {
+        if (actionName === 'View' && !this.isCommercial) {
             this.handleSeeProduct(row.Product2Id);
         } else if (actionName === 'Delete') {
-            this.handleDeleteProduct(row.Product2Id);
+            this.handleDeleteProduct(row.Id);
         }
     }
 
     handleSeeProduct(relatedProductId) {
         if (!relatedProductId) {
-            console.log(relatedProductId)
             return;
         }
         this[NavigationMixin.Navigate]({
@@ -173,11 +167,9 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
         }
         deleteRecord(relatedProductId)
             .then(result => {
-                console.log('Success delete')
                 return refreshApex(this.wiredProductsResult);
             }).catch(error => {
                 this.error = error;
-                console.log('FAIL delete', error)
             });
     }
 }
