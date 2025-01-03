@@ -104,7 +104,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
         this.wiredProductsResult = result;
         if (result.data) {
             this.hasQuantityIssue = false;
-            this.hasProduct = result.data.length > 0; // Vérifie si des produits existent
+            this.hasProduct = result.data.length > 0;
             this.products = result.data.map(item => {
                 const quantity = item.Quantity || 0;
                 const quantityInStock = item.Product2?.QuantityInStock__c || 0;
