@@ -14,6 +14,17 @@ import {
     refreshApex
 } from '@salesforce/apex';
 
+import Opp_ProductName from "@salesforce/label/c.Opp_ProductName";
+import Opp_Quantity from "@salesforce/label/c.Opp_Quantity";
+import Opp_UnitPrice from "@salesforce/label/c.Opp_UnitPrice";
+import Opp_TotalPrice from "@salesforce/label/c.Opp_TotalPrice";
+import Opp_QuantityInStock from "@salesforce/label/c.Opp_QuantityInStock";
+import Opp_Delete from "@salesforce/label/c.Opp_Delete";
+import Opp_SeeProduct from "@salesforce/label/c.Opp_SeeProduct";
+import Opp_QuantitySupQuantityInStock from "@salesforce/label/c.Opp_QuantitySupQuantityInStock";
+import Opp_NoProductLines from "@salesforce/label/c.Opp_NoProductLines";
+import Opp_OpportunityProducts from "@salesforce/label/c.Opp_OpportunityProducts";
+
 import getProducts from '@salesforce/apex/ProductController.getProducts';
 import getUser from '@salesforce/apex/UserController.getUser';
 
@@ -26,13 +37,20 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
     @track hasProduct = false;
 	@track isCommercial  = false;
 
-    columns = [{
-            label: 'Nom du produit',
+    labels = {
+        Opp_QuantitySupQuantityInStock,
+        Opp_NoProductLines,
+        Opp_OpportunityProducts
+    };
+
+    columns = [
+        {
+            label: Opp_ProductName,
             fieldName: 'productName',
             type: 'text'
         },
         {
-            label: 'Quantité',
+            label: Opp_Quantity,
             fieldName: 'Quantity',
             type: 'number',
             cellAttributes: {
@@ -42,42 +60,42 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
             }
         },
         {
-            label: 'Prix Unitaire',
+            label: Opp_UnitPrice,
             fieldName: 'UnitPrice',
             type: 'currency'
         },
         {
-            label: 'Prix Total',
+            label: Opp_TotalPrice,
             fieldName: 'TotalPrice',
             type: 'currency'
         },
         {
-            label: 'Quantité en Stock',
+            label: Opp_QuantityInStock,
             fieldName: 'quantityInStock',
             type: 'number'
         },
         {
-            label: 'Supprimer',
+            label: Opp_Delete,
             type: 'button-icon',
             initialWidth: 50,
             typeAttributes: {
                 iconName: 'utility:delete',
                 name: 'Delete',
-                title: 'Supprimer',
-                alternativeText: 'Supprimer',
+                title: Opp_Delete,
+                alternativeText: Opp_Delete,
                 variant: 'bare',
                 class: 'slds-p-around_xxx-small custom-border'
             },
-			cellAttributes: { class: 'slds-border_bottom' }
+            cellAttributes: { class: 'slds-border_bottom' }
         },
         {
-            label: 'Voir produit',
+            label: Opp_SeeProduct,
             type: 'button',
             initialWidth: 120,
             typeAttributes: {
-                label: 'Voir produit',
+                label: Opp_SeeProduct,
                 name: 'View',
-                title: 'Voir produit',
+                title: Opp_SeeProduct,
                 iconName: 'utility:preview',
                 iconPosition: 'left',
                 variant: 'brand',
@@ -85,6 +103,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
             }
         }
     ];
+
 
     @wire(getUser, { userId: '$userId' })
     userData({ error, data }) {
