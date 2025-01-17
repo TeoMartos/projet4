@@ -13,6 +13,7 @@ import {
 import {
     refreshApex
 } from '@salesforce/apex';
+import Id from '@salesforce/user/Id';
 
 import Opp_ProductName from "@salesforce/label/c.Opp_ProductName";
 import Opp_Quantity from "@salesforce/label/c.Opp_Quantity";
@@ -35,16 +36,8 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
     @track isButtonDisabled = false;
     @track hasQuantityIssue = false;
     @track hasProduct = false;
-	@track isCommercial  = false;
-
-    labels = {
-        Opp_QuantitySupQuantityInStock,
-        Opp_NoProductLines,
-        Opp_OpportunityProducts
-    };
-
-    columns = [
-        {
+    @track isCommercial = false;
+    @track columns = [{
             label: Opp_ProductName,
             fieldName: 'productName',
             type: 'text'
@@ -86,30 +79,52 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
                 variant: 'bare',
                 class: 'slds-p-around_xxx-small custom-border'
             },
-            cellAttributes: { class: 'slds-border_bottom' }
-        },
-        {
-            label: Opp_SeeProduct,
-            type: 'button',
-            initialWidth: 120,
-            typeAttributes: {
-                label: Opp_SeeProduct,
-                name: 'View',
-                title: Opp_SeeProduct,
-                iconName: 'utility:preview',
-                iconPosition: 'left',
-                variant: 'brand',
-                class: 'slds-p-around_xx-small custom-border'
+            cellAttributes: {
+                class: 'slds-border_bottom'
             }
         }
     ];
+    userId = Id;
 
+    labels = {
+        Opp_QuantitySupQuantityInStock,
+        Opp_NoProductLines,
+        Opp_OpportunityProducts
+    };
 
-    @wire(getUser, { userId: '$userId' })
-    userData({ error, data }) {
-        if (data) {
-            const profileName = data[0]?.Profile?.Name;
+    setColumns() {
+        if (!this.isCommercial) {
+            console.log(typeof this.columns)
+            this.columns = [...this.columns,
+                {
+                    label: Opp_SeeProduct,
+                    type: 'button',
+                    initialWidth: 120,
+                    typeAttributes: {
+                        label: Opp_SeeProduct,
+                        name: 'View',
+                        title: Opp_SeeProduct,
+                        iconName: 'utility:preview',
+                        iconPosition: 'left',
+                        variant: 'brand',
+                        class: 'slds-p-around_xx-small custom-border',
+                    }
+                }
+            ]
+        }
+    }
+
+    @wire(getUser, {
+        userId: '$userId'
+    })
+    userData({
+        error,
+        data
+    }) {
+        if (data && data.length > 0) {
+            const profileName = data[0]?.Profile.Name;
             this.isCommercial = profileName === 'Commercial';
+            this.setColumns();
         } else if (error) {
             console.error('Erreur lors de la récupération du profil utilisateur:', error);
         }
@@ -130,14 +145,14 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
                 if (quantity > quantityInStock) {
                     this.hasQuantityIssue = true;
                 }
-
                 return {
                     ...item,
                     productName: item.Product2?.Name,
                     quantityInStock: item.Product2?.QuantityInStock__c || 0,
                     Product2Id: item.Product2?.Id,
                     quantityStyle: quantity > quantityInStock ?
-                        'color: red; font-weight: bold;' : 'color: green; font-weight: bold;'
+                        'color: red; font-weight: bold;' : 'color: green; font-weight: bold;',
+                    disableViewButton: this.isCommercial
                 };
             });
             this.error = null
@@ -176,7 +191,6 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
                 actionName: 'view',
             },
         });
-
     }
 
     handleDeleteProduct(relatedProductId) {
