@@ -15,6 +15,7 @@ import {
 } from '@salesforce/apex';
 import Id from '@salesforce/user/Id';
 
+//importation des différents labels
 import Opp_ProductName from "@salesforce/label/c.Opp_ProductName";
 import Opp_Quantity from "@salesforce/label/c.Opp_Quantity";
 import Opp_UnitPrice from "@salesforce/label/c.Opp_UnitPrice";
@@ -26,7 +27,9 @@ import Opp_QuantitySupQuantityInStock from "@salesforce/label/c.Opp_QuantitySupQ
 import Opp_NoProductLines from "@salesforce/label/c.Opp_NoProductLines";
 import Opp_OpportunityProducts from "@salesforce/label/c.Opp_OpportunityProducts";
 
+//methode apex qui récupére les informations des produits
 import getProducts from '@salesforce/apex/ProductController.getProducts';
+//methode apex qui récupére les profils du User
 import getUser from '@salesforce/apex/UserController.getUser';
 
 export default class GetOpportunityProduct extends NavigationMixin(LightningElement) {
@@ -37,6 +40,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
     @track hasQuantityIssue = false;
     @track hasProduct = false;
     @track isCommercial = false;
+    //Columns en track pour l'utilisation dans setColumns
     @track columns = [{
             label: Opp_ProductName,
             fieldName: 'productName',
@@ -86,15 +90,15 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
     ];
     userId = Id;
 
+	//labels pour HTML
     labels = {
         Opp_QuantitySupQuantityInStock,
         Opp_NoProductLines,
         Opp_OpportunityProducts
     };
-
+	//fonction pour si le profil n'est pas commercial alors on affiche la columns pour le view buton
     setColumns() {
         if (!this.isCommercial) {
-            console.log(typeof this.columns)
             this.columns = [...this.columns,
                 {
                     label: Opp_SeeProduct,
@@ -130,6 +134,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
         }
     }
 
+    // Stockage du résultat des produits pour rafraîchir en cas de mise à jour
     wiredProductsResult;
     @wire(getProducts, {
         oppId: '$recordId'
@@ -152,7 +157,6 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
                     Product2Id: item.Product2?.Id,
                     quantityStyle: quantity > quantityInStock ?
                         'color: red; font-weight: bold;' : 'color: green; font-weight: bold;',
-                    disableViewButton: this.isCommercial
                 };
             });
             this.error = null
@@ -172,7 +176,7 @@ export default class GetOpportunityProduct extends NavigationMixin(LightningElem
     callRowAction(event) {
         const actionName = event.detail.action.name;
         const row = event.detail.row;
-        if (actionName === 'View' && !this.isCommercial) {
+        if (actionName === 'View') {
             this.handleSeeProduct(row.Product2Id);
         } else if (actionName === 'Delete') {
             this.handleDeleteProduct(row.Id);
